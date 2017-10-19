@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 android {
     compileSdkVersion 23
-    buildToolsVersion "25.0.1"
+    buildToolsVersion "25.0.3"
 
     defaultConfig {
     }
@@ -17,4 +17,5 @@ android {
 dependencies {
     compile files('libs/android-core-3.3.1.jar')
     compile files('libs/core-3.3.1.jar')
+//    compile 'com.google.zxing:zxing-parent:3.3.0'
 }
