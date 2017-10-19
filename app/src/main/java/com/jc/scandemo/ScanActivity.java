@@ -32,7 +32,6 @@ public class ScanActivity extends AppCompatActivity {
         String[] permissions = CheckPermissionUtils.checkPermission(this);
         if (permissions.length == 0) {
             //权限都申请了
-            //是否登录
         } else {
             //申请权限
             ActivityCompat.requestPermissions(this, permissions, 100);
