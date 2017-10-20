@@ -64,18 +64,18 @@ public class ScanActivity extends AppCompatActivity {
             int tmpDirection;
             switch (orientation) {
                 case 0:
-                    break;
-                case 90:
-                    tmpDirection = direction + 1;
-                    direction = tmpDirection < orientationMax ? tmpDirection : tmpDirection - orientationMax;
-                    break;
-                case 180:
                     tmpDirection = direction - 2;
                     direction = tmpDirection < orientationMax ? tmpDirection : tmpDirection + orientationMax;
                     break;
-                case 270:
+                case 90:
                     tmpDirection = direction - 1;
                     direction = tmpDirection < orientationMax ? tmpDirection : tmpDirection + orientationMax;
+                    break;
+                case 180:
+                    break;
+                case 270:
+                    tmpDirection = direction + 1;
+                    direction = tmpDirection < orientationMax ? tmpDirection : tmpDirection - orientationMax;
                     break;
                 default:
                     break;

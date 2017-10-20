@@ -22,6 +22,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Rect;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -52,10 +55,9 @@ import java.util.ArrayList;
  * @author dswitkin@google.com (Daniel Switkin)
  * @author Sean Owen
  */
-public final class CaptureActivity extends Activity implements SurfaceHolder.Callback {
+public final class CaptureActivity extends Activity implements SurfaceHolder.Callback, SensorEventListener {
 
     private static final String TAG = CaptureActivity.class.getSimpleName();
-
     private CameraManager cameraManager;
     private CaptureActivityHandler handler;
     private boolean hasSurface;
@@ -67,7 +69,9 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     private ImageView mIvScanLine = null;
     private Rect mScanRect;
     private int mOrientation;
-    private AlbumOrientationEventListener mAlbumOrientationEventListener;
+    private SensorManager sensorManager;
+    private Sensor mOrientationSensor;
+//    private AlbumOrientationEventListener mAlbumOrientationEventListener;
 
     public final static String X_LIST = "x_list";
     public final static String Y_LIST = "y_list";
@@ -93,36 +97,58 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         inactivityTimer = new InactivityTimer(this);
         beepManager = new BeepManager(this);
 
-        mAlbumOrientationEventListener = new AlbumOrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL);
-        if (mAlbumOrientationEventListener.canDetectOrientation()) {
-            mAlbumOrientationEventListener.enable();
-        }
+
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mOrientationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+
+//        mAlbumOrientationEventListener = new AlbumOrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL);
+//        if (mAlbumOrientationEventListener.canDetectOrientation()) {
+//            mAlbumOrientationEventListener.enable();
+//        }
     }
 
-    private class AlbumOrientationEventListener extends OrientationEventListener {
-        public AlbumOrientationEventListener( Context context ) {
-            super(context);
-        }
+    @Override
+    public void onAccuracyChanged( Sensor sensor, int accuracy ) {
 
-        public AlbumOrientationEventListener( Context context, int rate ) {
-            super(context, rate);
-        }
+    }
 
-        @Override
-        public void onOrientationChanged( int orientation ) {
-            Log.i(TAG, "mOrientation111:" + mOrientation);
-            if (orientation == OrientationEventListener.ORIENTATION_UNKNOWN) {
-                return;
-            }
-            //保证只返回四个方向
-            int newOrientation = ((orientation + 45) / 90 * 90) % 360;
+    @Override
+    public void onSensorChanged( SensorEvent event ) {
+        if (event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
+            int newOrientation = (((int) event.values[0] + 45) / 90 * 90) % 360;
             if (newOrientation != mOrientation) {
                 mOrientation = newOrientation;
                 Log.i(TAG, "mOrientation:" + mOrientation);
                 //返回的mOrientation就是手机方向，为0°、90°、180°和270°中的一个
             }
         }
+
     }
+
+//    private class AlbumOrientationEventListener extends OrientationEventListener {
+//        public AlbumOrientationEventListener( Context context ) {
+//            super(context);
+//        }
+//
+//        public AlbumOrientationEventListener( Context context, int rate ) {
+//            super(context, rate);
+//        }
+//
+//        @Override
+//        public void onOrientationChanged( int orientation ) {
+//            Log.i(TAG, "mOrientation111:" + mOrientation);
+//            if (orientation == OrientationEventListener.ORIENTATION_UNKNOWN) {
+//                return;
+//            }
+//            //保证只返回四个方向
+//            int newOrientation = ((orientation + 45) / 90 * 90) % 360;
+//            if (newOrientation != mOrientation) {
+//                mOrientation = newOrientation;
+//                Log.i(TAG, "mOrientation:" + mOrientation);
+//                //返回的mOrientation就是手机方向，为0°、90°、180°和270°中的一个
+//            }
+//        }
+//    }
 
     private void initView() {
         mRlScanContainer = (RelativeLayout) findViewById(R.id.rl_scan_container);
@@ -163,6 +189,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
             // Install the callback and wait for surfaceCreated() to init the camera.
             surfaceHolder.addCallback(this);
         }
+        sensorManager.registerListener(this, mOrientationSensor, SensorManager.SENSOR_DELAY_GAME);
     }
 
     @Override
@@ -179,6 +206,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
             SurfaceHolder surfaceHolder = surfaceView.getHolder();
             surfaceHolder.removeCallback(this);
         }
+        sensorManager.unregisterListener(this);
         super.onPause();
     }
 
